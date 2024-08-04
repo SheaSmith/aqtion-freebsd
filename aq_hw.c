@@ -627,22 +627,22 @@ AQ2_WRITE_REG_BIT(hw, AQ2_RPF_REDIR2_REG,
     rdm_rx_dca_en_set(hw, 0U);
     rdm_rx_dca_mode_set(hw, 0U);
 
-    AQ2_WRITE_REG_BIT(sc, AQ2_RPF_REC_TAB_ENABLE_REG,
+    AQ2_WRITE_REG_BIT(hw, AQ2_RPF_REC_TAB_ENABLE_REG,
 		    AQ2_RPF_REC_TAB_ENABLE_MASK, 0xffff);
-		AQ2_WRITE_REG_BIT(sc, RPF_L2UC_MSW_REG(0),
+		AQ2_WRITE_REG_BIT(hw, RPF_L2UC_MSW_REG(0),
 		    RPF_L2UC_MSW_TAG, 1);
-		AQ2_WRITE_REG_BIT(sc, AQ2_RPF_L2BC_TAG_REG,
+		AQ2_WRITE_REG_BIT(hw, AQ2_RPF_L2BC_TAG_REG,
 		    AQ2_RPF_L2BC_TAG_MASK, 1);
 
-		aq2_filter_art_set(sc, AQ2_RPF_INDEX_L2_PROMISC_OFF,
+		aq2_filter_art_set(hw, AQ2_RPF_INDEX_L2_PROMISC_OFF,
 		    0, AQ2_RPF_TAG_UC_MASK | AQ2_RPF_TAG_ALLMC_MASK,
 		    AQ2_ART_ACTION_DROP);
-		aq2_filter_art_set(sc, AQ2_RPF_INDEX_VLAN_PROMISC_OFF,
+		aq2_filter_art_set(hw, AQ2_RPF_INDEX_VLAN_PROMISC_OFF,
 		    0, AQ2_RPF_TAG_VLAN_MASK | AQ2_RPF_TAG_UNTAG_MASK,
 		    AQ2_ART_ACTION_DROP);
 
 		for (i = 0; i < 8; i++) {
-			aq2_filter_art_set(sc, AQ2_RPF_INDEX_PCP_TO_TC + i,
+			aq2_filter_art_set(hw, AQ2_RPF_INDEX_PCP_TO_TC + i,
 			    (i << AQ2_RPF_TAG_PCP_SHIFT), AQ2_RPF_TAG_PCP_MASK,
 			    AQ2_ART_ACTION_ASSIGN_TC(i % 8));
 		}
@@ -685,11 +685,11 @@ aq2_filter_art_set(struct aq_hw *sc, uint32_t idx,
 	}
 
 	idx += sc->sc_art_filter_base_index;
-	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_TAG_REG(idx), tag);
-	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_MASK_REG(idx), mask);
-	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_ACTION_REG(idx), action);
+	AQ2_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_TAG_REG(idx), tag);
+	AQ2_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_MASK_REG(idx), mask);
+	AQ2_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_ACTION_REG(idx), action);
 
-	AQ_WRITE_REG(sc, AQ2_ART_SEM_REG, 1);
+	AQ2_WRITE_REG(sc, AQ2_ART_SEM_REG, 1);
 
  out:
 	// AQ_MPI_UNLOCK(sc);
@@ -718,8 +718,7 @@ int aq_hw_mac_addr_set(struct aq_hw *hw, u8 *mac_addr, u8 index)
     rpfl2unicast_dest_addressmsw_set(hw, h, index);
     rpfl2_uc_flr_en_set(hw, 1U, index);
 
-    if (HWTYPE_AQ2_P(sc))
-		AQ_WRITE_REG_BIT(sc, RPF_L2UC_MSW_REG(index),
+		AQ2_WRITE_REG_BIT(hw, RPF_L2UC_MSW_REG(index),
 		    RPF_L2UC_MSW_TAG, 1);
 
     err = aq_hw_err_from_flags(hw);
@@ -767,7 +766,7 @@ int aq_hw_init(struct aq_hw *hw, u8 *mac_addr, u8 adm_irq, bool msix)
 
     aq_hw_qos_set(hw);
 
-    AQ_WRITE_REG_BIT(sc, AQ2_RPF_NEW_CTRL_REG,
+    AQ2_WRITE_REG_BIT(hw, AQ2_RPF_NEW_CTRL_REG,
 		    AQ2_RPF_NEW_CTRL_ENABLE, 1);
 
     err = aq_hw_err_from_flags(hw);

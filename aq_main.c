@@ -838,11 +838,11 @@ aq2_filter_art_set(struct aq_hw *sc, uint32_t idx,
 	}
 
 	idx += sc->sc_art_filter_base_index;
-	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_TAG_REG(idx), tag);
-	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_MASK_REG(idx), mask);
-	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_ACTION_REG(idx), action);
+	AQ2_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_TAG_REG(idx), tag);
+	AQ2_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_MASK_REG(idx), mask);
+	AQ2_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_ACTION_REG(idx), action);
 
-	AQ_WRITE_REG(sc, AQ2_ART_SEM_REG, 1);
+	AQ2_WRITE_REG(sc, AQ2_ART_SEM_REG, 1);
 
  out:
 	// AQ_MPI_UNLOCK(sc);
