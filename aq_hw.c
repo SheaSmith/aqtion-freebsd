@@ -553,6 +553,15 @@ static int aq_hw_init_tx_path(struct aq_hw *hw)
     return (err);
 }
 
+#define AQ2_ART_ACTION_ACT_SHIFT		8
+#define AQ2_ART_ACTION_RSS			0x0080
+#define AQ2_ART_ACTION_INDEX_SHIFT		2
+#define AQ2_ART_ACTION_ENABLE			0x0001
+#define AQ2_ART_ACTION(act, rss, idx, en)		\
+	(((act) << AQ2_ART_ACTION_ACT_SHIFT) |		\
+	((rss) ? AQ2_ART_ACTION_RSS : 0) |		\
+	((idx) << AQ2_ART_ACTION_INDEX_SHIFT) |		\
+	((en) ? AQ2_ART_ACTION_ENABLE : 0))
 #define AQ2_ART_ACTION_ASSIGN_TC(tc)		AQ2_ART_ACTION(1, 1, (tc), 1)
 #define RPF_L2UC_MSW_REG(i)                     (0x5114 + (i) * 8)
 
