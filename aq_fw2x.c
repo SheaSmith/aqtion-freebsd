@@ -546,7 +546,7 @@ static int fw2x_led_control(struct aq_hw* hw, u32 onoff)
 }
 
 int
-aq2_get_mac_addr(struct aq_hw *sc)
+aq2_get_mac_addr(struct aq_hw* sc, u8* mac)
 {
 	uint32_t mac_addr[2];
 
@@ -554,13 +554,13 @@ aq2_get_mac_addr(struct aq_hw *sc)
 	AQ_READ_REGS(sc, AQ2_FW_INTERFACE_IN_MAC_ADDRESS_REG,
 	    mac_addr, nitems(mac_addr));
 
-#ifdef __HAVE_FDT
-	if (mac_addr[0] == 0 && mac_addr[1] == 0 &&
-	    PCITAG_NODE(sc->sc_pcitag)) {
-		OF_getprop(PCITAG_NODE(sc->sc_pcitag), "local-mac-address",
-		    mac_addr, ETHER_ADDR_LEN);
-	}
-#endif
+// #ifdef __HAVE_FDT
+// 	if (mac_addr[0] == 0 && mac_addr[1] == 0 &&
+// 	    PCITAG_NODE(sc->sc_pcitag)) {
+// 		OF_getprop(PCITAG_NODE(sc->sc_pcitag), "local-mac-address",
+// 		    mac_addr, ETHER_ADDR_LEN);
+// 	}
+// #endif
 
 	if (mac_addr[0] == 0 && mac_addr[1] == 0) {
 		printf(": mac address not found\n");
@@ -570,8 +570,8 @@ aq2_get_mac_addr(struct aq_hw *sc)
 	mac_addr[0] = htole32(mac_addr[0]);
 	mac_addr[1] = htole32(mac_addr[1]);
 
-	memcpy(sc->sc_enaddr.ether_addr_octet,
-	    (uint8_t *)mac_addr, ETHER_ADDR_LEN);
+	memcpy(mac,
+	    (uint8_t *)mac_addr, ETH_MAC_LEN);
 	return 0;
 }
 
