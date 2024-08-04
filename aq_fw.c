@@ -175,7 +175,7 @@ int aq2_fw_reset(struct aq_hw* sc) {
 	char buf[32];
 	uint32_t filter_caps[3];
 
-	sc->sc_fw_ops = &aq2_fw_ops;
+	// sc->sc_fw_ops = &aq2_fw_ops;
 	sc->sc_features = FEATURES_AQ2;
 
 	AQ_WRITE_REG(sc, AQ2_MCP_HOST_REQ_INT_CLR_REG, 1);
