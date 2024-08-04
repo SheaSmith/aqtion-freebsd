@@ -143,7 +143,7 @@ static int aq_hw_init_ucp(struct aq_hw *hw)
 
     hw->fw_version.raw = 0;
 
-    err = aq2_fw_reset(hw);
+    err = aq2_fw_reboot(hw);
     if (err != EOK) {
         aq_log_error("aq_hw_init_ucp(): F/W reset failed, err %d", err);
         return (err);
@@ -367,7 +367,7 @@ int aq_hw_reset(struct aq_hw *hw)
 
     AQ_DBG_ENTER();
 
-    err = aq2_fw_reset(hw);
+    err = aq2_fw_reboot(hw);
     if (err < 0)
         goto err_exit;
 
