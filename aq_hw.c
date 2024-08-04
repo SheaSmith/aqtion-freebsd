@@ -650,6 +650,20 @@ AQ_WRITE_REG_BIT(sc, AQ2_RPF_REDIR2_REG,
 #define AQ2_RPF_ACT_ART_REQ_MASK_REG(i)		(0x14004 + (i) * 0x10)
 #define AQ2_RPF_ACT_ART_REQ_ACTION_REG(i)	(0x14008 + (i) * 0x10)
 
+#define WAIT_FOR(expr, us, n, errp)                             \
+	do {                                                    \
+		unsigned int _n;                                \
+		for (_n = n; (!(expr)) && _n != 0; --_n) {      \
+			msec_delay((us));                            \
+		}                                               \
+		if ((errp != NULL)) {                           \
+			if (_n == 0)                            \
+				*(errp) = ETIMEDOUT;            \
+			else                                    \
+				*(errp) = 0;                    \
+		}                                               \
+	} while (/* CONSTCOND */ 0)
+
 int
 aq2_filter_art_set(struct aq_hw *sc, uint32_t idx,
     uint32_t tag, uint32_t mask, uint32_t action)
