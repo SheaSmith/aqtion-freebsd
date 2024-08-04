@@ -47,6 +47,7 @@
 
 #define AQ_HW_FW_SM_RAM        0x2U
 #define AQ_CFG_FW_MIN_VER_EXPECTED 0x01050006U
+#define AQ2_HW_FPGA_VERSION_REG			0x00f4
 
 
 int aq_hw_err_from_flags(struct aq_hw *hw)
@@ -148,34 +149,34 @@ static int aq_hw_init_ucp(struct aq_hw *hw)
         return (err);
     }
 
-    aq_hw_chip_features_init(hw, &hw->chip_features);
-    err = aq_fw_ops_init(hw);
-    if (err < 0) {
-        aq_log_error("could not initialize F/W ops, err %d", err);
-        return (-1);
-    }
+    // aq_hw_chip_features_init(hw, &hw->chip_features);
+    // err = aq_fw_ops_init(hw);
+    // if (err < 0) {
+    //     aq_log_error("could not initialize F/W ops, err %d", err);
+    //     return (-1);
+    // }
 
-    if (hw->fw_version.major_version == 1) {
-        if (!AQ_READ_REG(hw, 0x370)) {
-            unsigned int rnd = 0;
-            unsigned int ucp_0x370 = 0;
+    // if (hw->fw_version.major_version == 1) {
+    //     if (!AQ_READ_REG(hw, 0x370)) {
+    //         unsigned int rnd = 0;
+    //         unsigned int ucp_0x370 = 0;
 
-            rnd = arc4random();
+    //         rnd = arc4random();
 
-            ucp_0x370 = 0x02020202 | (0xFEFEFEFE & rnd);
-            AQ_WRITE_REG(hw, AQ_HW_UCP_0X370_REG, ucp_0x370);
-        }
+    //         ucp_0x370 = 0x02020202 | (0xFEFEFEFE & rnd);
+    //         AQ_WRITE_REG(hw, AQ_HW_UCP_0X370_REG, ucp_0x370);
+    //     }
 
-        reg_glb_cpu_scratch_scp_set(hw, 0, 25);
-    }
+    //     reg_glb_cpu_scratch_scp_set(hw, 0, 25);
+    // }
 
-    /* check 10 times by 1ms */
-    AQ_HW_WAIT_FOR((hw->mbox_addr = AQ_READ_REG(hw, 0x360)) != 0, 400U, 20);
+    // /* check 10 times by 1ms */
+    // AQ_HW_WAIT_FOR((hw->mbox_addr = AQ_READ_REG(hw, 0x360)) != 0, 400U, 20);
 
-    aq_hw_fw_version ver_expected = { .raw = AQ_CFG_FW_MIN_VER_EXPECTED };
-    if (!aq_hw_ver_match(&ver_expected, &hw->fw_version))
-        aq_log_error("atlantic: aq_hw_init_ucp(), wrong FW version: expected:%x actual:%x",
-              AQ_CFG_FW_MIN_VER_EXPECTED, hw->fw_version.raw);
+    // aq_hw_fw_version ver_expected = { .raw = AQ_CFG_FW_MIN_VER_EXPECTED };
+    // if (!aq_hw_ver_match(&ver_expected, &hw->fw_version))
+    //     aq_log_error("atlantic: aq_hw_init_ucp(), wrong FW version: expected:%x actual:%x",
+    //           AQ_CFG_FW_MIN_VER_EXPECTED, hw->fw_version.raw);
 
     AQ_DBG_EXIT(err);
     return (err);
@@ -389,6 +390,12 @@ err_exit:
     return (err);
 }
 
+#define  TPS2_DATA_TCT_CREDIT_MAX		0xFFFF0000
+#define  TPS2_DATA_TCT_WEIGHT			0x7FFF
+
+#define AQ2_HW_TXBUF_MAX	128
+#define AQ2_HW_RXBUF_MAX	192
+
 static int aq_hw_qos_set(struct aq_hw *hw)
 {
     u32 tc = 0U;
@@ -408,13 +415,17 @@ static int aq_hw_qos_set(struct aq_hw *hw)
     tps_tx_pkt_shed_desc_tc_arb_mode_set(hw, 0U);
     tps_tx_pkt_shed_data_arb_mode_set(hw, 0U);
 
-    tps_tx_pkt_shed_tc_data_max_credit_set(hw, 0xFFF, 0U);
-    tps_tx_pkt_shed_tc_data_weight_set(hw, 0x64, 0U);
+    AQ_WRITE_REG_BIT(sc, TPS_DATA_TCT_REG(tc),
+		    TPS2_DATA_TCT_CREDIT_MAX, 0xfff0);
+		AQ_WRITE_REG_BIT(sc, TPS_DATA_TCT_REG(tc),
+		    TPS2_DATA_TCT_WEIGHT, 0x640);
+    // tps_tx_pkt_shed_tc_data_max_credit_set(hw, 0xFFF, 0U);
+    // tps_tx_pkt_shed_tc_data_weight_set(hw, 0x64, 0U);
     tps_tx_pkt_shed_desc_tc_max_credit_set(hw, 0x50, 0U);
     tps_tx_pkt_shed_desc_tc_weight_set(hw, 0x1E, 0U);
 
     /* Tx buf size */
-    buff_size = AQ_HW_TXBUF_MAX;
+    buff_size = AQ2_HW_TXBUF_MAX;
 
     tpb_tx_pkt_buff_size_per_tc_set(hw, buff_size, tc);
     tpb_tx_buff_hi_threshold_per_tc_set(hw,
@@ -426,7 +437,7 @@ static int aq_hw_qos_set(struct aq_hw *hw)
 
     /* QoS Rx buf size per TC */
     tc = 0;
-    buff_size = AQ_HW_RXBUF_MAX;
+    buff_size = AQ2_HW_RXBUF_MAX;
 
     rpb_rx_pkt_buff_size_per_tc_set(hw, buff_size, tc);
     rpb_rx_buff_hi_threshold_per_tc_set(hw,
@@ -509,6 +520,9 @@ err_exit:
     return (err);
 }
 
+#define TPB_TX_BUF_REG				0x7900
+#define  TPB_TX_BUF_CLK_GATE_EN			(1 << 5)
+
 static int aq_hw_init_tx_path(struct aq_hw *hw)
 {
     int err = 0;
@@ -532,10 +546,15 @@ static int aq_hw_init_tx_path(struct aq_hw *hw)
 
     tpb_tx_path_scp_ins_en_set(hw, 1U);
 
+    AQ_WRITE_REG_BIT(hw, TPB_TX_BUF_REG, TPB_TX_BUF_CLK_GATE_EN, 0);
+
     err = aq_hw_err_from_flags(hw);
     AQ_DBG_EXIT(err);
     return (err);
 }
+
+#define AQ2_ART_ACTION_ASSIGN_TC(tc)		AQ2_ART_ACTION(1, 1, (tc), 1)
+#define RPF_L2UC_MSW_REG(i)                     (0x5114 + (i) * 8)
 
 static int aq_hw_init_rx_path(struct aq_hw *hw)
 {
@@ -545,6 +564,10 @@ static int aq_hw_init_rx_path(struct aq_hw *hw)
     int err;
 
     AQ_DBG_ENTER();
+
+AQ_WRITE_REG_BIT(sc, AQ2_RPF_REDIR2_REG,
+		    AQ2_RPF_REDIR2_HASHTYPE, AQ2_RPF_REDIR2_HASHTYPE_ALL);
+
     /* Rx TC/RSS number config */
     rpb_rpf_rx_traf_class_mode_set(hw, 1U);
 
@@ -589,10 +612,62 @@ static int aq_hw_init_rx_path(struct aq_hw *hw)
     rdm_rx_dca_en_set(hw, 0U);
     rdm_rx_dca_mode_set(hw, 0U);
 
+    AQ_WRITE_REG_BIT(sc, AQ2_RPF_REC_TAB_ENABLE_REG,
+		    AQ2_RPF_REC_TAB_ENABLE_MASK, 0xffff);
+		AQ_WRITE_REG_BIT(sc, RPF_L2UC_MSW_REG(0),
+		    RPF_L2UC_MSW_TAG, 1);
+		AQ_WRITE_REG_BIT(sc, AQ2_RPF_L2BC_TAG_REG,
+		    AQ2_RPF_L2BC_TAG_MASK, 1);
+
+		aq2_filter_art_set(sc, AQ2_RPF_INDEX_L2_PROMISC_OFF,
+		    0, AQ2_RPF_TAG_UC_MASK | AQ2_RPF_TAG_ALLMC_MASK,
+		    AQ2_ART_ACTION_DROP);
+		aq2_filter_art_set(sc, AQ2_RPF_INDEX_VLAN_PROMISC_OFF,
+		    0, AQ2_RPF_TAG_VLAN_MASK | AQ2_RPF_TAG_UNTAG_MASK,
+		    AQ2_ART_ACTION_DROP);
+
+		for (i = 0; i < 8; i++) {
+			aq2_filter_art_set(sc, AQ2_RPF_INDEX_PCP_TO_TC + i,
+			    (i << AQ2_RPF_TAG_PCP_SHIFT), AQ2_RPF_TAG_PCP_MASK,
+			    AQ2_ART_ACTION_ASSIGN_TC(i % 8));
+		}
+
     err = aq_hw_err_from_flags(hw);
     AQ_DBG_EXIT(err);
     return (err);
 }
+
+#define AQ2_RPF_ACT_ART_REQ_TAG_REG(i)		(0x14000 + (i) * 0x10)
+#define AQ2_RPF_ACT_ART_REQ_MASK_REG(i)		(0x14004 + (i) * 0x10)
+#define AQ2_RPF_ACT_ART_REQ_ACTION_REG(i)	(0x14008 + (i) * 0x10)
+
+int
+aq2_filter_art_set(struct aq_hw *sc, uint32_t idx,
+    uint32_t tag, uint32_t mask, uint32_t action)
+{
+	int error;
+
+	AQ_MPI_LOCK(sc);
+
+	WAIT_FOR(AQ_READ_REG(sc, AQ2_ART_SEM_REG) == 1, 10, 1000, &error);
+	if (error != 0) {
+		printf("%s: AQ2_ART_SEM_REG timeout\n", "atlantic");
+		goto out;
+	}
+
+	idx += sc->sc_art_filter_base_index;
+	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_TAG_REG(idx), tag);
+	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_MASK_REG(idx), mask);
+	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_ACTION_REG(idx), action);
+
+	AQ_WRITE_REG(sc, AQ2_ART_SEM_REG, 1);
+
+ out:
+	AQ_MPI_UNLOCK(sc);
+	return error;
+}
+
+#define  RPF_L2UC_MSW_TAG			0x03c00000
 
 int aq_hw_mac_addr_set(struct aq_hw *hw, u8 *mac_addr, u8 index)
 {
@@ -614,6 +689,10 @@ int aq_hw_mac_addr_set(struct aq_hw *hw, u8 *mac_addr, u8 index)
     rpfl2unicast_dest_addressmsw_set(hw, h, index);
     rpfl2_uc_flr_en_set(hw, 1U, index);
 
+    if (HWTYPE_AQ2_P(sc))
+		AQ_WRITE_REG_BIT(sc, RPF_L2UC_MSW_REG(index),
+		    RPF_L2UC_MSW_TAG, 1);
+
     err = aq_hw_err_from_flags(hw);
 
 err_exit:
@@ -629,15 +708,26 @@ int aq_hw_init(struct aq_hw *hw, u8 *mac_addr, u8 adm_irq, bool msix)
 
     AQ_DBG_ENTER();
 
-    /* Force limit MRRS on RDM/TDM to 2K */
-    val = AQ_READ_REG(hw, AQ_HW_PCI_REG_CONTROL_6_ADR);
-    AQ_WRITE_REG(hw, AQ_HW_PCI_REG_CONTROL_6_ADR, (val & ~0x707) | 0x404);
+    // /* Force limit MRRS on RDM/TDM to 2K */
+    // val = AQ_READ_REG(hw, AQ_HW_PCI_REG_CONTROL_6_ADR);
+    // AQ_WRITE_REG(hw, AQ_HW_PCI_REG_CONTROL_6_ADR, (val & ~0x707) | 0x404);
 
-    /* TX DMA total request limit. B0 hardware is not capable to
-    * handle more than (8K-MRRS) incoming DMA data.
-    * Value 24 in 256byte units
-    */
-    AQ_WRITE_REG(hw, AQ_HW_TX_DMA_TOTAL_REQ_LIMIT_ADR, 24);
+    // /* TX DMA total request limit. B0 hardware is not capable to
+    // * handle more than (8K-MRRS) incoming DMA data.
+    // * Value 24 in 256byte units
+    // */
+    // AQ_WRITE_REG(hw, AQ_HW_TX_DMA_TOTAL_REQ_LIMIT_ADR, 24);
+
+    uint32_t fpgaver, speed;
+		fpgaver = AQ_READ_REG(hw, AQ2_HW_FPGA_VERSION_REG);
+		if (fpgaver < 0x01000000)
+			speed = AQ2_LAUNCHTIME_CTRL_RATIO_SPEED_FULL;
+		else if (fpgaver >= 0x01008502)
+			speed = AQ2_LAUNCHTIME_CTRL_RATIO_SPEED_HALF;
+		else
+			speed = AQ2_LAUNCHTIME_CTRL_RATIO_SPEED_QUARTER;
+		AQ_WRITE_REG_BIT(hw, AQ2_LAUNCHTIME_CTRL_REG,
+		    AQ2_LAUNCHTIME_CTRL_RATIO, speed);
 
     aq_hw_init_tx_path(hw);
     aq_hw_init_rx_path(hw);
@@ -647,6 +737,9 @@ int aq_hw_init(struct aq_hw *hw, u8 *mac_addr, u8 adm_irq, bool msix)
     aq_hw_mpi_set(hw, MPI_INIT, hw->link_rate);
 
     aq_hw_qos_set(hw);
+
+    AQ_WRITE_REG_BIT(sc, AQ2_RPF_NEW_CTRL_REG,
+		    AQ2_RPF_NEW_CTRL_ENABLE, 1);
 
     err = aq_hw_err_from_flags(hw);
     if (err < 0)
@@ -736,6 +829,8 @@ int aq_hw_interrupt_moderation_set(struct aq_hw *hw)
     rdm_rdm_intr_moder_en_set(hw, active);
     
     for (int i = HW_ATL_B0_RINGS_MAX; i--;) {
+        // AQ_WRITE_REG_BIT(sc, AQ2_TX_INTR_MODERATION_CTL_REG(i),
+			    // AQ2_TX_INTR_MODERATION_CTL_MIN, txmin);
         reg_tx_intr_moder_ctrl_set(hw,  itr_tx, i);
         reg_rx_intr_moder_ctrl_set(hw,  itr_rx, i);
     }

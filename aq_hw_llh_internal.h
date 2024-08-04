@@ -3256,7 +3256,7 @@
  * Parameter: queue {Q} | stride size 0x4 | range [0, 31]
  */
 
-#define tx_intr_moderation_ctl_adr(queue) (0x00008980u + (queue) * 0x4)
+#define tx_intr_moderation_ctl_adr(queue) (0x7c28 + (queue) * 0x40)
 
 /* pcie reg_res_dsbl bitfield definitions
  * preprocessor definitions for the bitfield "reg_res_dsbl".

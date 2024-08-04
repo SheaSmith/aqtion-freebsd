@@ -776,12 +776,36 @@ static bool aq_is_mc_promisc_required(struct aq_dev *softc)
 	return (softc->mcnt >= AQ_HW_MAC_MAX);
 }
 
+#define AQ2_ART_ACTION_DROP			AQ2_ART_ACTION(0, 0, 0, 1)
+#define AQ2_ART_ACTION_DISABLE			AQ2_ART_ACTION(0, 0, 0, 0)
+#define AQ2_ART_ACTION_ASSIGN_QUEUE(q)		AQ2_ART_ACTION(1, 0, (q), 1)
+#define AQ2_ART_ACTION_ASSIGN_TC(tc)		AQ2_ART_ACTION(1, 1, (tc), 1)
+#define AQ2_RPF_INDEX_L2_PROMISC_OFF		0
+#define AQ2_RPF_INDEX_VLAN_PROMISC_OFF		1
+
+#define AQ2_RPF_TAG_UNTAG_MASK			0x00004000
+#define AQ2_RPF_TAG_VLAN_MASK			0x00003c00
+#define AQ2_RPF_TAG_ET_MASK			0x00000380
+#define AQ2_RPF_TAG_ALLMC_MASK			0x00000040
+#define AQ2_RPF_TAG_UC_MASK			0x0000002f
+
 static void aq_if_multi_set(if_ctx_t ctx)
 {
 	struct aq_dev *softc = iflib_get_softc(ctx);
 	struct ifnet  *ifp = iflib_get_ifp(ctx);
 	struct aq_hw  *hw = &softc->hw;
 	AQ_DBG_ENTER();
+
+	uint32_t action;
+
+
+action = (ifp->if_flags & IFF_PROMISC) ?
+		    AQ2_ART_ACTION_DISABLE : AQ2_ART_ACTION_DROP;
+		aq2_filter_art_set(sc, AQ2_RPF_INDEX_L2_PROMISC_OFF, 0,
+		    AQ2_RPF_TAG_UC_MASK | AQ2_RPF_TAG_ALLMC_MASK, action);
+		aq2_filter_art_set(sc, AQ2_RPF_INDEX_VLAN_PROMISC_OFF, 0,
+		    AQ2_RPF_TAG_VLAN_MASK | AQ2_RPF_TAG_UNTAG_MASK, action);
+
 #if __FreeBSD_version >= 1300054
 	softc->mcnt = if_llmaddr_count(iflib_get_ifp(ctx));
 #else
