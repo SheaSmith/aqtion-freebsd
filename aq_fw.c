@@ -68,8 +68,10 @@ __FBSDID("$FreeBSD$");
 #define AQ2_MCP_HOST_REQ_INT_REG		0x0f00
 #define  AQ2_MCP_HOST_REQ_INT_READY		__BIT(0)
 #define AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_REG		0x13000
-#define  AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_B		__BITS(31,16)
-#define  AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_A		__BITS(15,0)
+#define  AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_B	0xffff0000
+#define  AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_B_S 16
+#define  AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_A	0x0000ffff
+#define  AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_A_S 0
 
 #define AQ2_FW_INTERFACE_OUT_VERSION_BUNDLE_REG		0x13004
 #define AQ2_FW_INTERFACE_OUT_VERSION_MAC_REG		0x13008
@@ -142,7 +144,7 @@ int wait_init_mac_firmware_(struct aq_hw* hw);
 
 
 int
-aq2_interface_buffer_read(struct aq_hw *sc, uint32_t reg0, uint32_t *data0,
+aq2_interface_buffer_read(struct aq_softc *sc, uint32_t reg0, uint32_t *data0,
     uint32_t size0)
 {
 	uint32_t tid0, tid1, reg, *data, size;
@@ -150,9 +152,11 @@ aq2_interface_buffer_read(struct aq_hw *sc, uint32_t reg0, uint32_t *data0,
 
 	for (timo = 10000; timo > 0; timo--) {
 		tid0 = AQ_READ_REG(sc, AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_REG);
-		if (__SHIFTOUT(tid0, AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_A) !=
-		    __SHIFTOUT(tid0, AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_B)) {
-			msec_delay(10);
+		if (((tid0 & AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_A)
+		    >> AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_A_S) !=
+		    ((tid0 & AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_B)
+		    >> AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_B_S)) {
+			delay(10);
 			continue;
 		}
 
@@ -166,7 +170,7 @@ aq2_interface_buffer_read(struct aq_hw *sc, uint32_t reg0, uint32_t *data0,
 			break;
 	}
 	if (timo == 0) {
-		aq_log_error("%s: timeout\n", __func__);
+		aq_log("%s: interface buffer read timeout\n", DEVNAME(sc));
 		return ETIMEDOUT;
 	}
 	return 0;
