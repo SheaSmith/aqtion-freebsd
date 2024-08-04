@@ -548,7 +548,7 @@ static int aq_hw_init_tx_path(struct aq_hw *hw)
 
     tpb_tx_path_scp_ins_en_set(hw, 1U);
 
-    AQ_WRITE_REG_BIT(hw, TPB_TX_BUF_REG, TPB_TX_BUF_CLK_GATE_EN, 0);
+    AQ2_WRITE_REG_BIT(hw, TPB_TX_BUF_REG, TPB_TX_BUF_CLK_GATE_EN, 0);
 
     err = aq_hw_err_from_flags(hw);
     AQ_DBG_EXIT(err);
