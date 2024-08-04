@@ -576,7 +576,7 @@ static int aq_hw_init_rx_path(struct aq_hw *hw)
 
     AQ_DBG_ENTER();
 
-AQ2_WRITE_REG_BIT(sc, AQ2_RPF_REDIR2_REG,
+AQ2_WRITE_REG_BIT(hw, AQ2_RPF_REDIR2_REG,
 		    AQ2_RPF_REDIR2_HASHTYPE, AQ2_RPF_REDIR2_HASHTYPE_ALL);
 
     /* Rx TC/RSS number config */
