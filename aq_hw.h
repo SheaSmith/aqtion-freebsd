@@ -348,6 +348,9 @@ enum aq_hw_fw_mpi_state_e {
     MPI_POWER = 4,
 };
 
+int	aq2_filter_art_set(struct aq_softc *, uint32_t, uint32_t, uint32_t,
+	    uint32_t action);
+
 int aq_hw_get_mac_permanent(struct aq_hw *hw, u8 *mac);
 
 int aq_hw_mac_addr_set(struct aq_hw *hw, u8 *mac_addr, u8 index);
