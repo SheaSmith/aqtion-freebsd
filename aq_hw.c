@@ -763,6 +763,9 @@ err_exit:
 #define  AQ2_LAUNCHTIME_CTRL_RATIO_SPEED_HALF	2
 #define  AQ2_LAUNCHTIME_CTRL_RATIO_SPEED_FULL	1
 
+#define AQ2_RPF_NEW_CTRL_REG			0x5104
+#define  AQ2_RPF_NEW_CTRL_ENABLE		(1 << 11)
+
 int aq_hw_init(struct aq_hw *hw, u8 *mac_addr, u8 adm_irq, bool msix)
 {
 
