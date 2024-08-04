@@ -109,6 +109,8 @@ char aq_driver_version[] = AQ_VER;
 #define AQ_DEVICE_ID_AQC111S	0x91B1
 #define AQ_DEVICE_ID_AQC112S	0x92B1
 
+#define AQ_DEVICE_ID_AQC113	0x14C0
+
 static pci_vendor_info_t aq_vendor_info_array[] = {
 	PVID(AQUANTIA_VENDOR_ID, AQ_DEVICE_ID_0001, "Aquantia AQtion 10Gbit Network Adapter"),
 	PVID(AQUANTIA_VENDOR_ID, AQ_DEVICE_ID_D107, "Aquantia AQtion 10Gbit Network Adapter"),
@@ -129,6 +131,8 @@ static pci_vendor_info_t aq_vendor_info_array[] = {
 	PVID(AQUANTIA_VENDOR_ID, AQ_DEVICE_ID_AQC112, "Aquantia AQtion 2.5Gbit Network Adapter"),
 	PVID(AQUANTIA_VENDOR_ID, AQ_DEVICE_ID_AQC111S, "Aquantia AQtion 5Gbit Network Adapter"),
 	PVID(AQUANTIA_VENDOR_ID, AQ_DEVICE_ID_AQC112S, "Aquantia AQtion 2.5Gbit Network Adapter"),
+
+	PVID(AQUANTIA_VENDOR_ID, AQ_DEVICE_ID_AQC113, "Aquantia AQtion 10Gbit Network Adapter"),
 
 	PVID_END
 };
@@ -1077,6 +1081,7 @@ static int aq_hw_capabilities(struct aq_dev *softc)
 	case AQ_DEVICE_ID_D107:
 	case AQ_DEVICE_ID_AQC107:
 	case AQ_DEVICE_ID_AQC107S:
+	case AQ_DEVICE_ID_AQC113:
 		softc->media_type = AQ_MEDIA_TYPE_TP;
 		softc->link_speeds = AQ_LINK_ALL;
 		break;

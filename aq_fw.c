@@ -53,6 +53,50 @@ __FBSDID("$FreeBSD$");
 #include "aq_dbg.h"
 
 
+#define AQ2_MCP_HOST_REQ_INT_CLR_REG		0x0f08
+#define AQ2_MIF_BOOT_REG			0x3040
+#define  AQ2_MIF_BOOT_BOOT_STARTED		__BIT(24)
+#define  AQ2_MIF_BOOT_FW_INIT_FAILED		__BIT(29)
+#define  AQ2_MIF_BOOT_FW_INIT_COMP_SUCCESS	__BIT(31)
+#define AQ2_MCP_HOST_REQ_INT_REG		0x0f00
+#define  AQ2_MCP_HOST_REQ_INT_READY		__BIT(0)
+#define AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_REG		0x13000
+#define  AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_B		__BITS(31,16)
+#define  AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_A		__BITS(15,0)
+
+#define AQ2_FW_INTERFACE_OUT_VERSION_BUNDLE_REG		0x13004
+#define AQ2_FW_INTERFACE_OUT_VERSION_MAC_REG		0x13008
+#define AQ2_FW_INTERFACE_OUT_VERSION_PHY_REG		0x1300c
+#define  AQ2_FW_INTERFACE_OUT_VERSION_BUILD		__BITS(31,16)
+#define  AQ2_FW_INTERFACE_OUT_VERSION_MINOR		__BITS(8,15)
+#define  AQ2_FW_INTERFACE_OUT_VERSION_MAJOR		__BITS(7,0)
+#define AQ2_FW_INTERFACE_OUT_VERSION_IFACE_REG		0x13010
+#define  AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER		__BITS(3,0)
+#define  AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER_A0	0
+#define  AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER_B0	1
+#define AQ2_FW_INTERFACE_OUT_VERSION_MAC_REG		0x13008
+#define  AQ2_FW_INTERFACE_OUT_FILTER_CAPS3_RESOLVER_BASE_INDEX		__BITS(16,23)
+#define AQ2_FW_INTERFACE_OUT_FILTER_CAPS_REG		0x13774
+#define AQ_HW_REVISION_REG			0x001c
+#define AQ2_HW_FPGA_VERSION_REG			0x00f4	/* AQ2 */
+
+#define FW_VERSION_MAJOR(sc)	(((sc)->sc_fw_version >> 24) & 0xff)
+#define FW_VERSION_MINOR(sc)	(((sc)->sc_fw_version >> 16) & 0xff)
+#define FW_VERSION_BUILD(sc)	((sc)->sc_fw_version & 0xffff)
+
+#define FEATURES_AQ2		0x10000000
+#define FEATURES_AQ2_IFACE_A0	0x20000000
+#define FEATURES_AQ2_IFACE_B0	0x40000000
+
+
+#define	__BIT(n)	(1 << (n))
+#define __BITS(hi,lo)	((~((~0)<<((hi)+1)))&((~0)<<(lo)))
+
+#define __LOWEST_SET_BIT(__mask) ((((__mask) - 1) & (__mask)) ^ (__mask))
+#define __SHIFTOUT(__x, __mask) (((__x) & (__mask)) / __LOWEST_SET_BIT(__mask))
+#define __SHIFTIN(__x, __mask) ((__x) * __LOWEST_SET_BIT(__mask))
+
+
 typedef enum aq_fw_bootloader_mode
 {
     boot_mode_unknown = 0,
@@ -94,6 +138,151 @@ int mac_soft_reset_flb_(struct aq_hw* hw);
 int mac_soft_reset_rbl_(struct aq_hw* hw, aq_fw_bootloader_mode* mode);
 int wait_init_mac_firmware_(struct aq_hw* hw);
 
+
+int
+aq2_interface_buffer_read(struct aq_softc *sc, uint32_t reg0, uint32_t *data0,
+    uint32_t size0)
+{
+	uint32_t tid0, tid1, reg, *data, size;
+	int timo;
+
+	for (timo = 10000; timo > 0; timo--) {
+		tid0 = AQ_READ_REG(sc, AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_REG);
+		if (__SHIFTOUT(tid0, AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_A) !=
+		    __SHIFTOUT(tid0, AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_B)) {
+			msec_delay(10);
+			continue;
+		}
+
+		for (reg = reg0, data = data0, size = size0;
+		    size >= 4; reg += 4, data++, size -= 4) {
+			*data = AQ_READ_REG(sc, reg);
+		}
+
+		tid1 = AQ_READ_REG(sc, AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_REG);
+		if (tid0 == tid1)
+			break;
+	}
+	if (timo == 0) {
+		aq_log_error("%s: timeout\n", __func__);
+		return ETIMEDOUT;
+	}
+	return 0;
+}
+
+int aq2_fw_reset(struct aq_hw* sc) {
+    int v;
+    int timo;
+    char buf[32];
+
+    AQ_WRITE_REG(sc, AQ2_MCP_HOST_REQ_INT_CLR_REG, 1);
+    AQ_WRITE_REG(sc, AQ2_MIF_BOOT_REG, 1);	/* reboot request */
+    for (timo = 200000; timo > 0; timo--) {
+		v = AQ_READ_REG(sc, AQ2_MIF_BOOT_REG);
+		if ((v & AQ2_MIF_BOOT_BOOT_STARTED) && v != 0xffffffff)
+			break;
+		msec_delay(10);
+	}
+
+    if (timo <= 0) {
+		aq_log_error("FW reboot timeout\n");
+		return (-EBUSY);
+	}
+
+    for (timo = 2000000; timo > 0; timo--) {
+		v = AQ_READ_REG(sc, AQ2_MIF_BOOT_REG);
+		if ((v & AQ2_MIF_BOOT_FW_INIT_FAILED) ||
+		    (v & AQ2_MIF_BOOT_FW_INIT_COMP_SUCCESS))
+			break;
+		v = AQ_READ_REG(sc, AQ2_MCP_HOST_REQ_INT_REG);
+		if (v & AQ2_MCP_HOST_REQ_INT_READY)
+			break;
+		msec_delay(10);
+	}
+
+    if (timo <= 0) {
+		aaq_log_error("FW restart timeout\n");
+		return ETIMEDOUT;
+	}
+
+	v = AQ_READ_REG(sc, AQ2_MIF_BOOT_REG);
+	if (v & AQ2_MIF_BOOT_FW_INIT_FAILED) {
+		aq_log_error("FW restart failed\n");
+		return ETIMEDOUT;
+	}
+
+	v = AQ_READ_REG(sc, AQ2_MCP_HOST_REQ_INT_REG);
+	if (v & AQ2_MCP_HOST_REQ_INT_READY) {
+		aq_log_error("firmware required\n");
+		return ENXIO;
+	}
+
+    /*
+	 * Get aq2 firmware version.
+	 * Note that the bit layout and its meaning are different from aq1.
+	 */
+	aq2_interface_buffer_read(sc, AQ2_FW_INTERFACE_OUT_VERSION_BUNDLE_REG,
+	    (uint32_t *)&v, sizeof(v));
+	sc->sc_fw_version =
+	    __SHIFTOUT(v, AQ2_FW_INTERFACE_OUT_VERSION_MAJOR) << 24 |
+	    __SHIFTOUT(v, AQ2_FW_INTERFACE_OUT_VERSION_MINOR) << 16 |
+	    __SHIFTOUT(v, AQ2_FW_INTERFACE_OUT_VERSION_BUILD);
+
+        aq2_interface_buffer_read(sc, AQ2_FW_INTERFACE_OUT_VERSION_IFACE_REG,
+	    (uint32_t *)&v, sizeof(v));
+	switch (__SHIFTOUT(v, AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER)) {
+	case AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER_A0:
+		sc->sc_features |= FEATURES_AQ2_IFACE_A0;
+		strncpy(buf, "A0", sizeof(buf));
+		break;
+	case AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER_B0:
+		sc->sc_features |= FEATURES_AQ2_IFACE_B0;
+		strncpy(buf, "B0", sizeof(buf));
+		break;
+	default:
+		snprintf(buf, sizeof(buf), "(unknown 0x%08x)", v);
+		break;
+	}
+	aq_log(
+	    "Atlantic2 %s, F/W version %d.%d.%d\n", buf,
+	    FW_VERSION_MAJOR(sc), FW_VERSION_MINOR(sc), FW_VERSION_BUILD(sc));
+
+	trace(AQ2_FW_INTERFACE_OUT_FILTER_CAPS_REG,
+	    (uint32_t *)&sc->sc_filter_caps, sizeof(sc->sc_filter_caps));
+	sc->sc_filter_art_base_index = __SHIFTOUT(sc->sc_filter_caps.caps3,
+	    AQ2_FW_INTERFACE_OUT_FILTER_CAPS3_RESOLVER_BASE_INDEX) * 8;
+
+	/* debug info */
+	v = AQ_READ_REG(sc, AQ_HW_REVISION_REG);
+	trace("HW Rev: 0x%08x\n", v);
+
+	aq2_interface_buffer_read(sc, AQ2_FW_INTERFACE_OUT_VERSION_MAC_REG,
+	    (uint32_t *)&v, sizeof(v));
+	trace("MAC Version %d.%d.%d\n",
+	    (int)__SHIFTOUT(v, AQ2_FW_INTERFACE_OUT_VERSION_MAJOR),
+	    (int)__SHIFTOUT(v, AQ2_FW_INTERFACE_OUT_VERSION_MINOR),
+	    (int)__SHIFTOUT(v, AQ2_FW_INTERFACE_OUT_VERSION_BUILD));
+
+	aq2_interface_buffer_read(sc, AQ2_FW_INTERFACE_OUT_VERSION_PHY_REG,
+	    (uint32_t *)&v, sizeof(v));
+	trace("PHY Version %d.%d.%d\n",
+	    (int)__SHIFTOUT(v, AQ2_FW_INTERFACE_OUT_VERSION_MAJOR),
+	    (int)__SHIFTOUT(v, AQ2_FW_INTERFACE_OUT_VERSION_MINOR),
+	    (int)__SHIFTOUT(v, AQ2_FW_INTERFACE_OUT_VERSION_BUILD));
+
+	v = AQ_READ_REG(sc, AQ2_HW_FPGA_VERSION_REG);
+	trace("AQ2 FPGA Version: %d.%d.%d.%d\n",
+	    (int)__SHIFTOUT(v, __BITS(31, 24)),
+	    (int)__SHIFTOUT(v, __BITS(23, 16)),
+	    (int)__SHIFTOUT(v, __BITS(15, 8)),
+	    (int)__SHIFTOUT(v, __BITS(7, 0)));
+
+	trace("FILTER CAPS: 0x%08x,0x%08x,0x%08x\n",
+	    sc->sc_filter_caps.caps1, sc->sc_filter_caps.caps2,
+	    sc->sc_filter_caps.caps3);
+
+	return 0;
+}
 
 int aq_fw_reset(struct aq_hw* hw)
 {
