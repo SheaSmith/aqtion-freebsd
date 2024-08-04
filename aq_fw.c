@@ -156,7 +156,7 @@ aq2_interface_buffer_read(struct aq_hw *sc, uint32_t reg0, uint32_t *data0,
 		    >> AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_A_S) !=
 		    ((tid0 & AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_B)
 		    >> AQ2_FW_INTERFACE_OUT_TRANSACTION_ID_B_S)) {
-			delay(10);
+			msec_delay(10);
 			continue;
 		}
 
