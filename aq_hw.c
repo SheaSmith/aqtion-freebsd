@@ -681,6 +681,10 @@ AQ2_WRITE_REG_BIT(hw, AQ2_RPF_REDIR2_REG,
 #define AQ2_RPF_ACT_ART_REQ_MASK_REG(i)		(0x14004 + (i) * 0x10)
 #define AQ2_RPF_ACT_ART_REQ_ACTION_REG(i)	(0x14008 + (i) * 0x10)
 
+#define AQ_FW_GLB_CPU_SEM_REG(i)		(0x03a0 + (i) * 4)
+#define AQ_FW_SEM_RAM_REG			AQ_FW_GLB_CPU_SEM_REG(2)
+#define AQ2_ART_SEM_REG				AQ_FW_GLB_CPU_SEM_REG(3)
+
 #define WAIT_FOR(expr, us, n, errp)                             \
 	do {                                                    \
 		unsigned int _n;                                \
