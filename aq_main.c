@@ -812,7 +812,7 @@ aq2_filter_art_set(struct aq_hw *sc, uint32_t idx,
 {
 	int error;
 
-	AQ_MPI_LOCK(sc);
+	// AQ_MPI_LOCK(sc);
 
 	WAIT_FOR(AQ_READ_REG(sc, AQ2_ART_SEM_REG) == 1, 10, 1000, &error);
 	if (error != 0) {
@@ -828,7 +828,7 @@ aq2_filter_art_set(struct aq_hw *sc, uint32_t idx,
 	AQ_WRITE_REG(sc, AQ2_ART_SEM_REG, 1);
 
  out:
-	AQ_MPI_UNLOCK(sc);
+	// AQ_MPI_UNLOCK(sc);
 	return error;
 }
 
