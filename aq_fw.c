@@ -418,7 +418,7 @@ int aq2_fw_reset(struct aq_hw* sc) {
 
 	/* debug info */
 	v = AQ_READ_REG(sc, AQ_HW_REVISION_REG);
-	printf("%s: HW Rev: 0x%08x\n", "atlantic", v));
+	printf("%s: HW Rev: 0x%08x\n", "atlantic", v);
 
 	return 0;
 }
