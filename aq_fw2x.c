@@ -338,7 +338,7 @@ int aq2_fw_get_mode(struct aq_hw* sc, enum aq_hw_fw_mpi_state_e* modep, aq_fw_li
 	// 	break;
 	case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_INVALID:
 	default:
-		speed = aq_fw_NONE;
+		speed = aq_fw_none;
 		break;
 	}
 	if (speedp != NULL)
