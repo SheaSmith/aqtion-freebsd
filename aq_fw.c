@@ -170,7 +170,7 @@ aq2_interface_buffer_read(struct aq_hw *sc, uint32_t reg0, uint32_t *data0,
 			break;
 	}
 	if (timo == 0) {
-		aq_log("%s: interface buffer read timeout\n", DEVNAME(sc));
+		aq_log("interface buffer read timeout\n");
 		return ETIMEDOUT;
 	}
 	return 0;
