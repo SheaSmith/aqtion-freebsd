@@ -132,54 +132,54 @@ aq2_interface_buffer_read(struct aq_hw *sc, uint32_t reg0, uint32_t *data0,
 	return 0;
 }
 
-int aq2_fw_reset(struct aq_hw* sc) {
-    uint32_t v;
-	int timo, err;
-	char buf[32];
-	uint32_t filter_caps[3];
+// int aq2_fw_reset(struct aq_hw* sc) {
+//     uint32_t v;
+// 	int timo, err;
+// 	char buf[32];
+// 	uint32_t filter_caps[3];
 
-	// sc->sc_fw_ops = &aq2_fw_ops;
-	sc->sc_features = FEATURES_AQ2;
+// 	// sc->sc_fw_ops = &aq2_fw_ops;
+// 	sc->sc_features = FEATURES_AQ2;
 
-	AQ_WRITE_REG(sc, AQ2_MCP_HOST_REQ_INT_CLR_REG, 1);
-	AQ_WRITE_REG(sc, AQ2_MIF_BOOT_REG, 1);	/* reboot request */
-	for (timo = 200000; timo > 0; timo--) {
-		v = AQ_READ_REG(sc, AQ2_MIF_BOOT_REG);
-		if ((v & AQ2_MIF_BOOT_BOOT_STARTED) && v != 0xffffffff)
-			break;
-		msec_delay(10);
-	}
-	if (timo <= 0) {
-		printf(": FW reboot timeout\n");
-		return ETIMEDOUT;
-	}
+// 	AQ_WRITE_REG(sc, AQ2_MCP_HOST_REQ_INT_CLR_REG, 1);
+// 	AQ_WRITE_REG(sc, AQ2_MIF_BOOT_REG, 1);	/* reboot request */
+// 	for (timo = 200000; timo > 0; timo--) {
+// 		v = AQ_READ_REG(sc, AQ2_MIF_BOOT_REG);
+// 		if ((v & AQ2_MIF_BOOT_BOOT_STARTED) && v != 0xffffffff)
+// 			break;
+// 		msec_delay(10);
+// 	}
+// 	if (timo <= 0) {
+// 		printf(": FW reboot timeout\n");
+// 		return ETIMEDOUT;
+// 	}
 
-	for (timo = 2000000; timo > 0; timo--) {
-		v = AQ_READ_REG(sc, AQ2_MIF_BOOT_REG);
-		if ((v & AQ2_MIF_BOOT_FW_INIT_FAILED) ||
-		    (v & AQ2_MIF_BOOT_FW_INIT_COMP_SUCCESS))
-			break;
-		v = AQ_READ_REG(sc, AQ2_MCP_HOST_REQ_INT_REG);
-		if (v & AQ2_MCP_HOST_REQ_INT_READY)
-			break;
-		msec_delay(10);
-	}
-	if (timo <= 0) {
-		printf(": FW restart timeout\n");
-		return ETIMEDOUT;
-	}
+// 	for (timo = 2000000; timo > 0; timo--) {
+// 		v = AQ_READ_REG(sc, AQ2_MIF_BOOT_REG);
+// 		if ((v & AQ2_MIF_BOOT_FW_INIT_FAILED) ||
+// 		    (v & AQ2_MIF_BOOT_FW_INIT_COMP_SUCCESS))
+// 			break;
+// 		v = AQ_READ_REG(sc, AQ2_MCP_HOST_REQ_INT_REG);
+// 		if (v & AQ2_MCP_HOST_REQ_INT_READY)
+// 			break;
+// 		msec_delay(10);
+// 	}
+// 	if (timo <= 0) {
+// 		printf(": FW restart timeout\n");
+// 		return ETIMEDOUT;
+// 	}
 
-	v = AQ_READ_REG(sc, AQ2_MIF_BOOT_REG);
-	if (v & AQ2_MIF_BOOT_FW_INIT_FAILED) {
-		printf(": FW restart failed\n");
-		return ETIMEDOUT;
-	}
+// 	v = AQ_READ_REG(sc, AQ2_MIF_BOOT_REG);
+// 	if (v & AQ2_MIF_BOOT_FW_INIT_FAILED) {
+// 		printf(": FW restart failed\n");
+// 		return ETIMEDOUT;
+// 	}
 
-	v = AQ_READ_REG(sc, AQ2_MCP_HOST_REQ_INT_REG);
-	if (v & AQ2_MCP_HOST_REQ_INT_READY) {
-		printf(": firmware required\n");
-		return ENXIO;
-	}
+// 	v = AQ_READ_REG(sc, AQ2_MCP_HOST_REQ_INT_REG);
+// 	if (v & AQ2_MCP_HOST_REQ_INT_READY) {
+// 		printf(": firmware required\n");
+// 		return ENXIO;
+// 	}
 
 	/*
 	 * Get aq2 firmware version.
