@@ -140,7 +140,7 @@ int wait_init_mac_firmware_(struct aq_hw* hw);
 
 
 int
-aq2_interface_buffer_read(struct aq_softc *sc, uint32_t reg0, uint32_t *data0,
+aq2_interface_buffer_read(struct aq_hw *sc, uint32_t reg0, uint32_t *data0,
     uint32_t size0)
 {
 	uint32_t tid0, tid1, reg, *data, size;
