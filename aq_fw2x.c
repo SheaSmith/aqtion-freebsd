@@ -577,7 +577,18 @@ aq2_get_mac_addr(struct aq_hw* sc, u8* mac)
 	return 0;
 }
 
+static int
+aq2_fw_wait_shared_ack(struct aq_hw *sc)
+{
+	int error;
 
+	AQ_WRITE_REG(sc, AQ2_MIF_HOST_FINISHED_STATUS_WRITE_REG,
+	    AQ2_MIF_HOST_FINISHED_STATUS_ACK);
+	WAIT_FOR((AQ_READ_REG(sc, AQ2_MIF_HOST_FINISHED_STATUS_READ_REG) &
+	    AQ2_MIF_HOST_FINISHED_STATUS_ACK) == 0, 100, 100000, &error);
+
+	return error;
+}
 
 int
 aq2_fw_set_mode(struct aq_hw *sc, enum aq_hw_fw_mpi_state_e mode, aq_fw_link_speed_t speed)
@@ -646,19 +657,6 @@ aq2_fw_set_mode(struct aq_hw *sc, enum aq_hw_fw_mpi_state_e mode, aq_fw_link_spe
 	error = aq2_fw_wait_shared_ack(sc);
 
 	// AQ_MPI_UNLOCK(sc);
-	return error;
-}
-
-static int
-aq2_fw_wait_shared_ack(struct aq_hw *sc)
-{
-	int error;
-
-	AQ_WRITE_REG(sc, AQ2_MIF_HOST_FINISHED_STATUS_WRITE_REG,
-	    AQ2_MIF_HOST_FINISHED_STATUS_ACK);
-	WAIT_FOR((AQ_READ_REG(sc, AQ2_MIF_HOST_FINISHED_STATUS_READ_REG) &
-	    AQ2_MIF_HOST_FINISHED_STATUS_ACK) == 0, 100, 100000, &error);
-
 	return error;
 }
 
