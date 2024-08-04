@@ -46,6 +46,8 @@
     
 #define AQ_READ_REG(hw, reg) le32toh(readl((hw)->hw_addr + reg))
 
+#define __LOWEST_SET_BIT(__mask) (((((uint32_t)__mask) - 1) & ((uint32_t)__mask)) ^ ((uint32_t)__mask))
+#define __SHIFTIN(__x, __mask) ((__x) * __LOWEST_SET_BIT(__mask))
 
 #define AQ_WRITE_REG_BIT(hw, reg, msk, shift, value) do { \
     if (msk ^ ~0) { \
