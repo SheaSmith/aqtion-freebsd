@@ -338,7 +338,7 @@ int aq2_fw_reset(struct aq_hw* sc) {
 		v = AQ_READ_REG(sc, AQ2_MIF_BOOT_REG);
 		if ((v & AQ2_MIF_BOOT_BOOT_STARTED) && v != 0xffffffff)
 			break;
-		delay(10);
+		msec_delay(10);
 	}
 	if (timo <= 0) {
 		printf(": FW reboot timeout\n");
@@ -353,7 +353,7 @@ int aq2_fw_reset(struct aq_hw* sc) {
 		v = AQ_READ_REG(sc, AQ2_MCP_HOST_REQ_INT_REG);
 		if (v & AQ2_MCP_HOST_REQ_INT_READY)
 			break;
-		delay(10);
+		msec_delay(10);
 	}
 	if (timo <= 0) {
 		printf(": FW restart timeout\n");
