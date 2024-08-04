@@ -332,8 +332,8 @@ int aq2_fw_reset(struct aq_hw* sc) {
 	// sc->sc_fw_ops = &aq2_fw_ops;
 	sc->sc_features = FEATURES_AQ2;
 
-	AQ2_WRITE_REG(sc, AQ2_MCP_HOST_REQ_INT_CLR_REG, 1);
-	AQ2_WRITE_REG(sc, AQ2_MIF_BOOT_REG, 1);	/* reboot request */
+	AQ_WRITE_REG(sc, AQ2_MCP_HOST_REQ_INT_CLR_REG, 1);
+	AQ_WRITE_REG(sc, AQ2_MIF_BOOT_REG, 1);	/* reboot request */
 	for (timo = 200000; timo > 0; timo--) {
 		v = AQ_READ_REG(sc, AQ2_MIF_BOOT_REG);
 		if ((v & AQ2_MIF_BOOT_BOOT_STARTED) && v != 0xffffffff)
@@ -418,7 +418,7 @@ int aq2_fw_reset(struct aq_hw* sc) {
 
 	/* debug info */
 	v = AQ_READ_REG(sc, AQ_HW_REVISION_REG);
-	printf("%s: HW Rev: 0x%08x\n", "atlantic", v);
+	printf("%s: HW Rev: 0x%08x\n", "atlantic", v));
 
 	return 0;
 }
