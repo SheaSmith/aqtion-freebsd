@@ -204,6 +204,14 @@ int fw2x_get_stats(struct aq_hw* hw, struct aq_hw_stats_s* stats);
 //@}
 
 
+int aq2_fw_reset(struct aq_hw* hw);
+
+int aq2_fw_set_mode(struct aq_hw* hw, enum aq_hw_fw_mpi_state_e mode, aq_fw_link_speed_t speed);
+int aq2_fw_get_mode(struct aq_hw* hw, enum aq_hw_fw_mpi_state_e* mode, aq_fw_link_speed_t* speed, aq_fw_link_fc_t* fc);
+
+int aq2_get_mac_addr(struct aq_hw* hw, u8* mac);
+int aq2_fw_get_stats(struct aq_hw* hw, struct aq_hw_stats_s* stats);
+
 
 static u64 read64_(struct aq_hw* hw, u32 addr)
 {
