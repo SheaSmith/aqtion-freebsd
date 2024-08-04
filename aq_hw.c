@@ -393,6 +393,8 @@ err_exit:
 #define  TPS2_DATA_TCT_CREDIT_MAX		0xFFFF0000
 #define  TPS2_DATA_TCT_WEIGHT			0x7FFF
 
+#define TPS_DATA_TCT_REG(i)			(0x7110 + (i) * 4)
+
 #define AQ2_HW_TXBUF_MAX	128
 #define AQ2_HW_RXBUF_MAX	192
 
