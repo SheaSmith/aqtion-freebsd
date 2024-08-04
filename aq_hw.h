@@ -48,7 +48,7 @@
     
 #define AQ_READ_REG(hw, reg) le32toh(readl((hw)->hw_addr + reg))
 #define AQ_READ_REGS(sc, reg, p, cnt) \
-	bus_space_read_region_4((sc)->sc_iot, (sc)->sc_ioh, (reg), (p), (cnt));
+	bus_space_read_region_4((sc)->mmio_tag, (sc)->mmio_handle, (reg), (p), (cnt));
 
 #define __LOWEST_SET_BIT(__mask) (((((uint32_t)__mask) - 1) & ((uint32_t)__mask)) ^ ((uint32_t)__mask))
 #define __SHIFTIN(__x, __mask) ((__x) * __LOWEST_SET_BIT(__mask))
@@ -190,6 +190,10 @@ struct aq_hw {
     u16 subsystem_device_id;
     u16 vendor_id;
     u8  revision_id;
+
+    bus_space_tag_t		mmio_tag;
+	bus_space_handle_t	mmio_handle;
+	bus_size_t		mmio_size;
 
     /* Interrupt Moderation value. */
     int itr;

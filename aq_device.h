@@ -115,9 +115,7 @@ struct aq_dev {
 
 	int			mmio_rid;
 	struct resource *	mmio_res;
-	bus_space_tag_t		mmio_tag;
-	bus_space_handle_t	mmio_handle;
-	bus_size_t		mmio_size;
+	
 
 	struct aq_ring    *tx_rings[HW_ATL_B0_RINGS_MAX];
 	struct aq_ring    *rx_rings[HW_ATL_B0_RINGS_MAX];
