@@ -757,6 +757,12 @@ err_exit:
     return (err);
 }
 
+#define AQ2_LAUNCHTIME_CTRL_REG			0x7a1c
+#define  AQ2_LAUNCHTIME_CTRL_RATIO		0x0000ff00
+#define  AQ2_LAUNCHTIME_CTRL_RATIO_SPEED_QUARTER 4
+#define  AQ2_LAUNCHTIME_CTRL_RATIO_SPEED_HALF	2
+#define  AQ2_LAUNCHTIME_CTRL_RATIO_SPEED_FULL	1
+
 int aq_hw_init(struct aq_hw *hw, u8 *mac_addr, u8 adm_irq, bool msix)
 {
 
