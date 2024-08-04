@@ -201,7 +201,7 @@ static driver_t aq_driver = {
 };
 
 static devclass_t aq_devclass;
-DRIVER_MODULE(atlantic, pci, aq_driver, aq_devclass, 0, 0);
+DRIVER_MODULE(atlantic, pci, aq_driver, 0, 0);
 
 MODULE_DEPEND(atlantic, pci, 1, 1, 1);
 MODULE_DEPEND(atlantic, ether, 1, 1, 1);
