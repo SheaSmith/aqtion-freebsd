@@ -799,6 +799,39 @@ static bool aq_is_mc_promisc_required(struct aq_dev *softc)
 #define AQ2_RPF_TAG_ALLMC_MASK			0x00000040
 #define AQ2_RPF_TAG_UC_MASK			0x0000002f
 
+#define AQ2_RPF_ACT_ART_REQ_TAG_REG(i)		(0x14000 + (i) * 0x10)
+#define AQ2_RPF_ACT_ART_REQ_MASK_REG(i)		(0x14004 + (i) * 0x10)
+#define AQ2_RPF_ACT_ART_REQ_ACTION_REG(i)	(0x14008 + (i) * 0x10)
+
+#define AQ_FW_GLB_CPU_SEM_REG(i)		(0x03a0 + (i) * 4)
+#define AQ2_ART_SEM_REG				AQ_FW_GLB_CPU_SEM_REG(3)
+
+int
+aq2_filter_art_set(struct aq_softc *sc, uint32_t idx,
+    uint32_t tag, uint32_t mask, uint32_t action)
+{
+	int error;
+
+	AQ_MPI_LOCK(sc);
+
+	WAIT_FOR(AQ_READ_REG(sc, AQ2_ART_SEM_REG) == 1, 10, 1000, &error);
+	if (error != 0) {
+		printf("%s: AQ2_ART_SEM_REG timeout\n", "atlantic");
+		goto out;
+	}
+
+	idx += sc->sc_art_filter_base_index;
+	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_TAG_REG(idx), tag);
+	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_MASK_REG(idx), mask);
+	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_ACTION_REG(idx), action);
+
+	AQ_WRITE_REG(sc, AQ2_ART_SEM_REG, 1);
+
+ out:
+	AQ_MPI_UNLOCK(sc);
+	return error;
+}
+
 static void aq_if_multi_set(if_ctx_t ctx)
 {
 	struct aq_dev *softc = iflib_get_softc(ctx);
