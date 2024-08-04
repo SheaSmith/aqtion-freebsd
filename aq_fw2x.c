@@ -674,6 +674,8 @@ aq2_fw_set_mode(struct aq_hw *sc, enum aq_hw_fw_mpi_state_e mode, aq_fw_link_spe
 	return error;
 }
 
+#include <sys/net/ethernet.h>
+
 int
 aq2_fw_reset(struct aq_hw *sc)
 {
