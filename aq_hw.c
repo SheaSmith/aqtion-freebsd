@@ -567,6 +567,10 @@ static int aq_hw_init_tx_path(struct aq_hw *hw)
 #define AQ2_ART_ACTION_ASSIGN_TC(tc)		AQ2_ART_ACTION(1, 1, (tc), 1)
 #define RPF_L2UC_MSW_REG(i)                     (0x5114 + (i) * 8)
 
+#define AQ2_RPF_REDIR2_REG			0x54c8
+#define  AQ2_RPF_REDIR2_HASHTYPE		0x00000100
+#define  AQ2_RPF_REDIR2_HASHTYPE_ALL		0x00000100
+
 static int aq_hw_init_rx_path(struct aq_hw *hw)
 {
     //struct aq_nic_cfg_s *cfg = hw->aq_nic_cfg;
