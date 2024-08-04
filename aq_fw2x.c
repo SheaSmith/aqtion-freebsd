@@ -627,7 +627,7 @@ aq2_fw_set_mode(struct aq_hw *sc, enum aq_hw_fw_mpi_state_e mode, aq_fw_link_spe
 	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10M_HD);
 
 	v &= ~AQ2_FW_INTERFACE_IN_LINK_OPTIONS_LINK_UP;
-	ov = v;
+	// ov = v;
 
 	if (speed & aq_fw_10G)
 		v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10G;
