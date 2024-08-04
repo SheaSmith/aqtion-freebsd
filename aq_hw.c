@@ -718,7 +718,7 @@ aq2_filter_art_set(struct aq_hw *sc, uint32_t idx,
 	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_MASK_REG(idx), mask);
 	AQ_WRITE_REG(sc, AQ2_RPF_ACT_ART_REQ_ACTION_REG(idx), action);
 
-	AQ2_WRITE_REG(sc, AQ2_ART_SEM_REG, 1);
+	AQ_WRITE_REG(sc, AQ2_ART_SEM_REG, 1);
 
  out:
 	// AQ_MPI_UNLOCK(sc);
