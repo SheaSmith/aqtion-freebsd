@@ -200,7 +200,6 @@ static driver_t aq_driver = {
 	"aq", aq_methods, sizeof(struct aq_dev),
 };
 
-static devclass_t aq_devclass;
 DRIVER_MODULE(atlantic, pci, aq_driver, 0, 0);
 
 MODULE_DEPEND(atlantic, pci, 1, 1, 1);
