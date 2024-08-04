@@ -607,7 +607,7 @@ aq2_fw_wait_shared_ack(struct aq_hw *sc)
 int
 aq2_fw_set_mode(struct aq_hw *sc, enum aq_hw_fw_mpi_state_e mode, aq_fw_link_speed_t speed)
 {
-	uint32_t v, ov;
+	uint32_t v;
 	int error;
 
 	// AQ_MPI_LOCK(sc);
