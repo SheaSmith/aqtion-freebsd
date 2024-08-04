@@ -207,7 +207,7 @@ int aq2_fw_reset(struct aq_hw* sc) {
 	}
 
     if (timo <= 0) {
-		aaq_log_error("FW restart timeout\n");
+		aq_log_error("FW restart timeout\n");
 		return ETIMEDOUT;
 	}
 
