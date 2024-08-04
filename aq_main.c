@@ -338,7 +338,7 @@ static int aq_if_attach_pre(if_ctx_t ctx)
 	softc->hw.mmio_tag = rman_get_bustag(softc->mmio_res);
 	softc->hw.mmio_handle = rman_get_bushandle(softc->mmio_res);
 	softc->hw.mmio_size = rman_get_size(softc->mmio_res);
-	softc->hw.hw_addr = (u8*) softc->mmio_handle;
+	softc->hw.hw_addr = (u8*) softc->hw.mmio_handle;
 	hw = &softc->hw;
 	hw->link_rate = aq_fw_speed_auto;
 	hw->itr = -1;
