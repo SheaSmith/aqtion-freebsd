@@ -309,8 +309,8 @@ int fw2x_set_mode(struct aq_hw* hw, enum aq_hw_fw_mpi_state_e mode, aq_fw_link_s
 
 int aq2_fw_get_mode(struct aq_hw* sc, enum aq_hw_fw_mpi_state_e* modep, aq_fw_link_speed_t* speedp, aq_fw_link_fc_t* fcp) {
     uint32_t v;
-	enum aq_fw_link_speed_t speed;
-	enum aq_fw_link_fc_t fc = 0;
+	enum aq_fw_link_speed speed;
+	enum aq_fw_link_fc fc = 0;
 
 	if (modep != NULL)
 		*modep = MPI_INIT;
