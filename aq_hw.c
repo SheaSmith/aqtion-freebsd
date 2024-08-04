@@ -770,7 +770,7 @@ int aq_hw_init(struct aq_hw *hw, u8 *mac_addr, u8 adm_irq, bool msix)
 {
 
     int err = 0;
-    u32 val = 0;
+    // u32 val = 0;
 
     AQ_DBG_ENTER();
 
