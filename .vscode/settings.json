@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "aq_fw.h": "c",
+        "aq_hw_llh.h": "c"
+    }
+}
