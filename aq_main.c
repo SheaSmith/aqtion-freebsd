@@ -807,7 +807,7 @@ static bool aq_is_mc_promisc_required(struct aq_dev *softc)
 #define AQ2_ART_SEM_REG				AQ_FW_GLB_CPU_SEM_REG(3)
 
 int
-aq2_filter_art_set(struct aq_softc *sc, uint32_t idx,
+aq2_filter_art_set(struct aq_hw *sc, uint32_t idx,
     uint32_t tag, uint32_t mask, uint32_t action)
 {
 	int error;
