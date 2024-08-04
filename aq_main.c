@@ -861,9 +861,9 @@ static void aq_if_multi_set(if_ctx_t ctx)
 
 action = (ifp->if_flags & IFF_PROMISC) ?
 		    AQ2_ART_ACTION_DISABLE : AQ2_ART_ACTION_DROP;
-		aq2_filter_art_set(sc, AQ2_RPF_INDEX_L2_PROMISC_OFF, 0,
+		aq2_filter_art_set(hw, AQ2_RPF_INDEX_L2_PROMISC_OFF, 0,
 		    AQ2_RPF_TAG_UC_MASK | AQ2_RPF_TAG_ALLMC_MASK, action);
-		aq2_filter_art_set(sc, AQ2_RPF_INDEX_VLAN_PROMISC_OFF, 0,
+		aq2_filter_art_set(hw, AQ2_RPF_INDEX_VLAN_PROMISC_OFF, 0,
 		    AQ2_RPF_TAG_VLAN_MASK | AQ2_RPF_TAG_UNTAG_MASK, action);
 
 #if __FreeBSD_version >= 1300054
