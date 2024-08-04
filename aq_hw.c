@@ -571,6 +571,31 @@ static int aq_hw_init_tx_path(struct aq_hw *hw)
 #define  AQ2_RPF_REDIR2_HASHTYPE		0x00000100
 #define  AQ2_RPF_REDIR2_HASHTYPE_ALL		0x00000100
 
+#define AQ2_RPF_REC_TAB_ENABLE_REG		0x6ff0
+#define  AQ2_RPF_REC_TAB_ENABLE_MASK		0x0000ffff
+#define  RPF_L2UC_MSW_TAG			0x03c00000
+
+#define AQ2_RPF_L2BC_TAG_REG			0x50f0
+#define  AQ2_RPF_L2BC_TAG_MASK			0x0000003f
+
+#define AQ2_RPF_INDEX_L2_PROMISC_OFF		0
+#define AQ2_RPF_INDEX_VLAN_PROMISC_OFF		1
+
+#define AQ2_RPF_TAG_VLAN_MASK			0x00003c00
+#define AQ2_RPF_TAG_ET_MASK			0x00000380
+#define AQ2_RPF_TAG_ALLMC_MASK			0x00000040
+#define AQ2_RPF_TAG_UC_MASK			0x0000002f
+
+#define AQ2_ART_ACTION_DROP			AQ2_ART_ACTION(0, 0, 0, 1)
+
+#define AQ2_RPF_TAG_UNTAG_MASK			0x00004000
+
+#define AQ2_RPF_INDEX_PCP_TO_TC			56
+
+#define AQ2_RPF_TAG_PCP_MASK			0xe0000000
+#define AQ2_RPF_TAG_PCP_SHIFT			29
+
+
 static int aq_hw_init_rx_path(struct aq_hw *hw)
 {
     //struct aq_nic_cfg_s *cfg = hw->aq_nic_cfg;
