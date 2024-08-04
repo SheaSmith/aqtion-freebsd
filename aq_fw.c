@@ -185,52 +185,52 @@ aq2_interface_buffer_read(struct aq_hw *sc, uint32_t reg0, uint32_t *data0,
 	 * Get aq2 firmware version.
 	 * Note that the bit layout and its meaning are different from aq1.
 	 */
-	err = aq2_interface_buffer_read(sc, AQ2_FW_INTERFACE_OUT_VERSION_BUNDLE_REG,
-	    (uint32_t *)&v, sizeof(v));
-	if (err != 0)
-		return err;
+// 	err = aq2_interface_buffer_read(sc, AQ2_FW_INTERFACE_OUT_VERSION_BUNDLE_REG,
+// 	    (uint32_t *)&v, sizeof(v));
+// 	if (err != 0)
+// 		return err;
 
-	sc->sc_fw_version =
-	    (((v & AQ2_FW_INTERFACE_OUT_VERSION_MAJOR) >>
-		AQ2_FW_INTERFACE_OUT_VERSION_MAJOR_S) << 24) |
-	    (((v & AQ2_FW_INTERFACE_OUT_VERSION_MINOR) >>
-		AQ2_FW_INTERFACE_OUT_VERSION_MINOR_S) << 16) |
-	    (((v & AQ2_FW_INTERFACE_OUT_VERSION_BUILD) >>
-		AQ2_FW_INTERFACE_OUT_VERSION_BUILD_S));
+// 	sc->sc_fw_version =
+// 	    (((v & AQ2_FW_INTERFACE_OUT_VERSION_MAJOR) >>
+// 		AQ2_FW_INTERFACE_OUT_VERSION_MAJOR_S) << 24) |
+// 	    (((v & AQ2_FW_INTERFACE_OUT_VERSION_MINOR) >>
+// 		AQ2_FW_INTERFACE_OUT_VERSION_MINOR_S) << 16) |
+// 	    (((v & AQ2_FW_INTERFACE_OUT_VERSION_BUILD) >>
+// 		AQ2_FW_INTERFACE_OUT_VERSION_BUILD_S));
 
-	err = aq2_interface_buffer_read(sc, AQ2_FW_INTERFACE_OUT_VERSION_IFACE_REG,
-	    (uint32_t *)&v, sizeof(v));
-	if (err != 0)
-		return err;
+// 	err = aq2_interface_buffer_read(sc, AQ2_FW_INTERFACE_OUT_VERSION_IFACE_REG,
+// 	    (uint32_t *)&v, sizeof(v));
+// 	if (err != 0)
+// 		return err;
 
-	switch (v & AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER) {
-	case AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER_A0:
-		sc->sc_features |= FEATURES_AQ2_IFACE_A0;
-		strncpy(buf, "A0", sizeof(buf));
-		break;
-	case AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER_B0:
-		sc->sc_features |= FEATURES_AQ2_IFACE_B0;
-		strncpy(buf, "B0", sizeof(buf));
-		break;
-	default:
-		snprintf(buf, sizeof(buf), "(unknown 0x%08x)", v);
-		break;
-	}
-	printf(", Atlantic2 %s, F/W version %d.%d.%d", buf,
-	    FW_VERSION_MAJOR(sc), FW_VERSION_MINOR(sc), FW_VERSION_BUILD(sc));
+// 	switch (v & AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER) {
+// 	case AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER_A0:
+// 		sc->sc_features |= FEATURES_AQ2_IFACE_A0;
+// 		strncpy(buf, "A0", sizeof(buf));
+// 		break;
+// 	case AQ2_FW_INTERFACE_OUT_VERSION_IFACE_VER_B0:
+// 		sc->sc_features |= FEATURES_AQ2_IFACE_B0;
+// 		strncpy(buf, "B0", sizeof(buf));
+// 		break;
+// 	default:
+// 		snprintf(buf, sizeof(buf), "(unknown 0x%08x)", v);
+// 		break;
+// 	}
+// 	printf(", Atlantic2 %s, F/W version %d.%d.%d", buf,
+// 	    FW_VERSION_MAJOR(sc), FW_VERSION_MINOR(sc), FW_VERSION_BUILD(sc));
 
-	aq2_interface_buffer_read(sc, AQ2_FW_INTERFACE_OUT_FILTER_CAPS_REG,
-	    filter_caps, sizeof(filter_caps));
-	sc->sc_art_filter_base_index = ((filter_caps[2] &
-	    AQ2_FW_INTERFACE_OUT_FILTER_CAPS3_RESOLVER_BASE_INDEX) >>
-	    AQ2_FW_INTERFACE_OUT_FILTER_CAPS3_RESOLVER_BASE_INDEX_SHIFT) * 8;
+// 	aq2_interface_buffer_read(sc, AQ2_FW_INTERFACE_OUT_FILTER_CAPS_REG,
+// 	    filter_caps, sizeof(filter_caps));
+// 	sc->sc_art_filter_base_index = ((filter_caps[2] &
+// 	    AQ2_FW_INTERFACE_OUT_FILTER_CAPS3_RESOLVER_BASE_INDEX) >>
+// 	    AQ2_FW_INTERFACE_OUT_FILTER_CAPS3_RESOLVER_BASE_INDEX_SHIFT) * 8;
 
-	/* debug info */
-	v = AQ_READ_REG(sc, AQ_HW_REVISION_REG);
-	printf("%s: HW Rev: 0x%08x\n", "atlantic", v);
+// 	/* debug info */
+// 	v = AQ_READ_REG(sc, AQ_HW_REVISION_REG);
+// 	printf("%s: HW Rev: 0x%08x\n", "atlantic", v);
 
-	return 0;
-}
+// 	return 0;
+// }
 
 int aq_fw_reset(struct aq_hw* hw)
 {
