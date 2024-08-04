@@ -545,6 +545,8 @@ static int fw2x_led_control(struct aq_hw* hw, u32 onoff)
     return (err);
 }
 
+
+
 int
 aq2_get_mac_addr(struct aq_hw* sc, u8* mac)
 {

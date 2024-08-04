@@ -42,9 +42,13 @@
 #include <sys/endian.h>
 #include "aq_common.h"
 
+#include	<machine/bus.h>
+
 #define AQ_WRITE_REG(hw, reg, value) writel(((hw)->hw_addr + (reg)), htole32(value))
     
 #define AQ_READ_REG(hw, reg) le32toh(readl((hw)->hw_addr + reg))
+#define AQ_READ_REGS(sc, reg, p, cnt) \
+	bus_space_read_region_4((sc)->sc_iot, (sc)->sc_ioh, (reg), (p), (cnt));
 
 #define __LOWEST_SET_BIT(__mask) (((((uint32_t)__mask) - 1) & ((uint32_t)__mask)) ^ ((uint32_t)__mask))
 #define __SHIFTIN(__x, __mask) ((__x) * __LOWEST_SET_BIT(__mask))
