@@ -69,7 +69,9 @@ struct aq_firmware_ops
     int (*led_control)(struct aq_hw* hal, u32 mode);
 };
 
-
+int aq2_fw_reset(struct aq_hw* hw);
+int aq2_interface_buffer_read(struct aq_hw *sc, uint32_t reg0, uint32_t *data0,
+    uint32_t size0);
 int aq_fw_reset(struct aq_hw* hw);
 int aq_fw_ops_init(struct aq_hw* hw);
 
