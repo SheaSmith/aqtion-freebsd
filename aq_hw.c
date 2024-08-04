@@ -149,9 +149,9 @@ static int aq_hw_init_ucp(struct aq_hw *hw)
         return (err);
     }
 
-    hw->fw_ops = &aq_fw2x_ops;
+    // hw->fw_ops = &aq_fw2x_ops;
     // aq_hw_chip_features_init(hw, &hw->chip_features);
-    // err = aq_fw_ops_init(hw);
+    err = aq_fw_ops_init(hw);
     // if (err < 0) {
     //     aq_log_error("could not initialize F/W ops, err %d", err);
     //     return (-1);

@@ -499,25 +499,25 @@ int aq_fw_reset(struct aq_hw* hw)
 
 int aq_fw_ops_init(struct aq_hw* hw)
 {
-    if (hw->fw_version.raw == 0)
-        hw->fw_version.raw = AQ_READ_REG(hw, 0x18);
+    // if (hw->fw_version.raw == 0)
+    //     hw->fw_version.raw = AQ_READ_REG(hw, 0x18);
 
-    aq_log("MAC F/W version is %d.%d.%d",
-        hw->fw_version.major_version, hw->fw_version.minor_version,
-        hw->fw_version.build_number);
+    // aq_log("MAC F/W version is %d.%d.%d",
+    //     hw->fw_version.major_version, hw->fw_version.minor_version,
+    //     hw->fw_version.build_number);
 
-    if (hw->fw_version.major_version == 1) {
-        trace(dbg_init, "using F/W ops v1.x");
-        hw->fw_ops = &aq_fw1x_ops;
-        return (EOK);
-    } else if (hw->fw_version.major_version >= 2) {
+    // if (hw->fw_version.major_version == 1) {
+    //     trace(dbg_init, "using F/W ops v1.x");
+    //     hw->fw_ops = &aq_fw1x_ops;
+    //     return (EOK);
+    // } else if (hw->fw_version.major_version >= 2) {
         trace(dbg_init, "using F/W ops v2.x");
         hw->fw_ops = &aq_fw2x_ops;
         return (EOK);
-    }
+    // }
 
-    aq_log_error("aq_fw_ops_init(): invalid F/W version %#x", hw->fw_version.raw);
-    return (-ENOTSUP);
+    // aq_log_error("aq_fw_ops_init(): invalid F/W version %#x", hw->fw_version.raw);
+    // return (-ENOTSUP);
 }
 
 
