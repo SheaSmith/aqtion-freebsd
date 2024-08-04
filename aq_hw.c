@@ -415,9 +415,9 @@ static int aq_hw_qos_set(struct aq_hw *hw)
     tps_tx_pkt_shed_desc_tc_arb_mode_set(hw, 0U);
     tps_tx_pkt_shed_data_arb_mode_set(hw, 0U);
 
-    AQ_WRITE_REG_BIT(sc, TPS_DATA_TCT_REG(tc),
+    AQ2_WRITE_REG_BIT(hw, TPS_DATA_TCT_REG(tc),
 		    TPS2_DATA_TCT_CREDIT_MAX, 0xfff0);
-		AQ_WRITE_REG_BIT(sc, TPS_DATA_TCT_REG(tc),
+		AQ2_WRITE_REG_BIT(hw, TPS_DATA_TCT_REG(tc),
 		    TPS2_DATA_TCT_WEIGHT, 0x640);
     // tps_tx_pkt_shed_tc_data_max_credit_set(hw, 0xFFF, 0U);
     // tps_tx_pkt_shed_tc_data_weight_set(hw, 0x64, 0U);

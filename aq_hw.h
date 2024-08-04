@@ -58,6 +58,16 @@
         AQ_WRITE_REG(hw, reg, value); \
     } } while(0)
 
+#define AQ2_WRITE_REG_BIT(sc, reg, mask, val)                    \
+	do {                                                    \
+		uint32_t _v;                                    \
+		_v = AQ_READ_REG((sc), (reg));                  \
+		_v &= ~(mask);                                  \
+		if ((val) != 0)                                 \
+			_v |= __SHIFTIN((val), (mask));         \
+		AQ_WRITE_REG((sc), (reg), _v);                  \
+	} while (/* CONSTCOND */ 0)
+
 
 #define AQ_READ_REG_BIT(a, reg, msk, shift) ( \
     ((AQ_READ_REG(a, reg) & msk) >> shift))        
