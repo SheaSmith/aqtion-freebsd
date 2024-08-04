@@ -789,7 +789,7 @@ int aq_hw_init(struct aq_hw *hw, u8 *mac_addr, u8 adm_irq, bool msix)
 			speed = AQ2_LAUNCHTIME_CTRL_RATIO_SPEED_HALF;
 		else
 			speed = AQ2_LAUNCHTIME_CTRL_RATIO_SPEED_QUARTER;
-		AQ_WRITE_REG_BIT(hw, AQ2_LAUNCHTIME_CTRL_REG,
+		AQ2_WRITE_REG_BIT(hw, AQ2_LAUNCHTIME_CTRL_REG,
 		    AQ2_LAUNCHTIME_CTRL_RATIO, speed);
 
     aq_hw_init_tx_path(hw);
