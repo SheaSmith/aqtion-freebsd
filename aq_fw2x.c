@@ -577,6 +577,20 @@ aq2_get_mac_addr(struct aq_hw* sc, u8* mac)
 	return 0;
 }
 
+#define WAIT_FOR(expr, us, n, errp)                             \
+	do {                                                    \
+		unsigned int _n;                                \
+		for (_n = n; (!(expr)) && _n != 0; --_n) {      \
+			msec_delay((us));                            \
+		}                                               \
+		if ((errp != NULL)) {                           \
+			if (_n == 0)                            \
+				*(errp) = ETIMEDOUT;            \
+			else                                    \
+				*(errp) = 0;                    \
+		}                                               \
+	} while (/* CONSTCOND */ 0)
+
 static int
 aq2_fw_wait_shared_ack(struct aq_hw *sc)
 {
