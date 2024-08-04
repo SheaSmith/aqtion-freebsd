@@ -820,7 +820,7 @@ static bool aq_is_mc_promisc_required(struct aq_dev *softc)
 		}                                               \
 	} while (/* CONSTCOND */ 0)
 
-int	aq2_filter_art_set(struct aq_softc *, uint32_t, uint32_t, uint32_t,
+int	aq2_filter_art_set(struct aq_hw *, uint32_t, uint32_t, uint32_t,
 	    uint32_t action);
 
 int
