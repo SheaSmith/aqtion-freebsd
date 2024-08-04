@@ -307,6 +307,52 @@ int fw2x_set_mode(struct aq_hw* hw, enum aq_hw_fw_mpi_state_e mode, aq_fw_link_s
     return (EOK);
 }
 
+int aq2_fw_get_mode(struct aq_hw* sc, enum aq_hw_fw_mpi_state_e* modep, aq_fw_link_speed_t* speedp, aq_fw_link_fc_t* fcp) {
+    uint32_t v;
+	enum aq_fw_link_speed_t speed;
+	enum aq_fw_link_fc_t fc = 0;
+
+	if (modep != NULL)
+		*modep = MPI_INIT;
+
+	v = AQ_READ_REG(sc, AQ2_FW_INTERFACE_OUT_LINK_STATUS_REG);
+	switch ((v & AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE) >>
+	    AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_S) {
+	case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_10G:
+		speed = aq_fw_10G;
+		break;
+	case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_5G:
+		speed = aq_fw_5G;
+		break;
+	case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_2G5:
+		speed = aq_fw_2G5;
+		break;
+	case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_1G:
+		speed = aq_fw_1G;
+		break;
+	case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_100M:
+		speed = aq_fw_100M;
+		break;
+	case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_10M:
+		speed = aq_fw_10M;
+		break;
+	case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_INVALID:
+	default:
+		speed = aq_fw_NONE;
+		break;
+	}
+	if (speedp != NULL)
+		*speedp = speed;
+
+	if (v & AQ2_FW_INTERFACE_OUT_LINK_STATUS_PAUSE_TX)
+		fc |= aq_fw_fc_ENABLE_TX;
+	if (v & AQ2_FW_INTERFACE_OUT_LINK_STATUS_PAUSE_RX)
+		fc |= aq_fw_fc_ENABLE_RX;
+	if (fcp != NULL)
+		*fcp = fc;
+
+}
+
 int fw2x_get_mode(struct aq_hw* hw, enum aq_hw_fw_mpi_state_e* mode, aq_fw_link_speed_t* link_speed, aq_fw_link_fc_t* fc)
 {
     u64 mpi_state = get_mpi_state_(hw);
@@ -468,6 +514,12 @@ int fw2x_get_stats(struct aq_hw* hw, struct aq_hw_stats_s* stats)
     return (err);
 }
 
+int
+aq2_fw_get_stats(struct aq_hw *sc, struct aq_hw_stats_s *w)
+{
+	return 0;
+}
+
 static int fw2x_led_control(struct aq_hw* hw, u32 onoff)
 {
     int err = 0;
@@ -484,15 +536,160 @@ static int fw2x_led_control(struct aq_hw* hw, u32 onoff)
     return (err);
 }
 
+int
+aq2_get_mac_addr(struct aq_hw *sc)
+{
+	uint32_t mac_addr[2];
+
+	memset(mac_addr, 0, sizeof(mac_addr));
+	AQ_READ_REGS(sc, AQ2_FW_INTERFACE_IN_MAC_ADDRESS_REG,
+	    mac_addr, nitems(mac_addr));
+
+#ifdef __HAVE_FDT
+	if (mac_addr[0] == 0 && mac_addr[1] == 0 &&
+	    PCITAG_NODE(sc->sc_pcitag)) {
+		OF_getprop(PCITAG_NODE(sc->sc_pcitag), "local-mac-address",
+		    mac_addr, ETHER_ADDR_LEN);
+	}
+#endif
+
+	if (mac_addr[0] == 0 && mac_addr[1] == 0) {
+		printf(": mac address not found\n");
+		return ENXIO;
+	}
+
+	mac_addr[0] = htole32(mac_addr[0]);
+	mac_addr[1] = htole32(mac_addr[1]);
+
+	memcpy(sc->sc_enaddr.ether_addr_octet,
+	    (uint8_t *)mac_addr, ETHER_ADDR_LEN);
+	return 0;
+}
+
+
+
+int
+aq2_fw_set_mode(struct aq_hw *sc, enum aq_hw_fw_mpi_state_e mode, aq_fw_link_speed_t speed)
+{
+	uint32_t v, ov;
+	int error;
+
+	// AQ_MPI_LOCK(sc);
+
+	v = AQ_READ_REG(sc, AQ2_FW_INTERFACE_IN_LINK_OPTIONS_REG);
+	v &= ~(
+	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10G |
+	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_N5G |
+	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_5G |
+	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_N2G5 |
+	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_2G5 |
+	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_1G |
+	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_100M |
+	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10M |
+	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_1G_HD |
+	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_100M_HD |
+	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10M_HD);
+
+	v &= ~AQ2_FW_INTERFACE_IN_LINK_OPTIONS_LINK_UP;
+	ov = v;
+
+	if (speed & aq_fw_10G)
+		v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10G;
+	if (speed & aq_fw_5G)
+		v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_N5G |
+		    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_5G;
+	if (speed & aq_fw_2G5)
+		v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_N2G5 |
+		    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_2G5;
+	if (speed & aq_fw_1G)
+		v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_1G |
+		    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_1G_HD;
+	if (speed & aq_fw_100M)
+		v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_100M |
+		    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_100M_HD;
+	if (speed & aq_fw_10M) {
+		v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10M |
+		    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10M_HD;
+	}
+
+	// /* flow control */
+	// v &= ~(AQ2_FW_INTERFACE_IN_LINK_OPTIONS_PAUSE_TX |
+	//     AQ2_FW_INTERFACE_IN_LINK_OPTIONS_PAUSE_RX);
+	// if (fc & AQ_FC_TX)
+	// 	v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_PAUSE_TX;
+	// if (fc & AQ_FC_RX)
+	// 	v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_PAUSE_RX;
+
+	if (speed == aq_fw_none) {
+		AQ_WRITE_REG_BIT(sc, AQ2_FW_INTERFACE_IN_LINK_CONTROL_REG,
+		    AQ2_FW_INTERFACE_IN_LINK_CONTROL_MODE,
+		    AQ2_FW_INTERFACE_IN_LINK_CONTROL_MODE_SHUTDOWN);
+	} else {
+		AQ_WRITE_REG_BIT(sc, AQ2_FW_INTERFACE_IN_LINK_CONTROL_REG,
+		    AQ2_FW_INTERFACE_IN_LINK_CONTROL_MODE,
+		    AQ2_FW_INTERFACE_IN_LINK_CONTROL_MODE_ACTIVE);
+		v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_LINK_UP;
+	}
+
+	AQ_WRITE_REG(sc, AQ2_FW_INTERFACE_IN_LINK_OPTIONS_REG, v);
+	error = aq2_fw_wait_shared_ack(sc);
+
+	// AQ_MPI_UNLOCK(sc);
+	return error;
+}
+
+static int
+aq2_fw_wait_shared_ack(struct aq_hw *sc)
+{
+	int error;
+
+	AQ_WRITE_REG(sc, AQ2_MIF_HOST_FINISHED_STATUS_WRITE_REG,
+	    AQ2_MIF_HOST_FINISHED_STATUS_ACK);
+	WAIT_FOR((AQ_READ_REG(sc, AQ2_MIF_HOST_FINISHED_STATUS_READ_REG) &
+	    AQ2_MIF_HOST_FINISHED_STATUS_ACK) == 0, 100, 100000, &error);
+
+	return error;
+}
+
+int
+aq2_fw_reset(struct aq_hw *sc)
+{
+	uint32_t v;
+	int error;
+
+	AQ_WRITE_REG_BIT(sc, AQ2_FW_INTERFACE_IN_LINK_CONTROL_REG,
+	    AQ2_FW_INTERFACE_IN_LINK_CONTROL_MODE,
+	    AQ2_FW_INTERFACE_IN_LINK_CONTROL_MODE_ACTIVE);
+
+	AQ_WRITE_REG(sc, AQ2_FW_INTERFACE_IN_MTU_REG,
+	    /*AQ2_JUMBO_MTU*/ MCLBYTES + sizeof(struct ether_header));
+
+	v = AQ_READ_REG(sc, AQ2_FW_INTERFACE_IN_REQUEST_POLICY_REG);
+	v |= AQ2_FW_INTERFACE_IN_REQUEST_POLICY_MCAST_QUEUE_OR_TC;
+	v &= ~AQ2_FW_INTERFACE_IN_REQUEST_POLICY_MCAST_RX_QUEUE_TC_INDEX;
+	v |= AQ2_FW_INTERFACE_IN_REQUEST_POLICY_MCAST_ACCEPT;
+	v |= AQ2_FW_INTERFACE_IN_REQUEST_POLICY_BCAST_QUEUE_OR_TC;
+	v &= AQ2_FW_INTERFACE_IN_REQUEST_POLICY_BCAST_RX_QUEUE_TC_INDEX;
+	v |= AQ2_FW_INTERFACE_IN_REQUEST_POLICY_BCAST_ACCEPT;
+	v |= AQ2_FW_INTERFACE_IN_REQUEST_POLICY_PROMISC_QUEUE_OR_TC;
+	v &= ~AQ2_FW_INTERFACE_IN_REQUEST_POLICY_PROMISC_RX_QUEUE_TX_INDEX;
+	AQ_WRITE_REG(sc, AQ2_FW_INTERFACE_IN_REQUEST_POLICY_REG, v);
+
+	error = aq2_fw_wait_shared_ack(sc);
+	if (error != 0)
+		printf(": reset timed out\n");
+	return error;
+}
+
 struct aq_firmware_ops aq_fw2x_ops =
 {
-    .reset = fw2x_reset,
+    .reset = aq2_fw_reset,
 
-    .set_mode = fw2x_set_mode,
-    .get_mode = fw2x_get_mode,
+    .set_mode = aq2_fw_set_mode,
+    .get_mode = aq2_fw_get_mode,
 
-    .get_mac_addr = fw2x_get_mac_addr,
-    .get_stats = fw2x_get_stats,
+    .get_mac_addr = aq2_get_mac_addr,
+    .get_stats = aq2_fw_get_stats,
 
     .led_control = fw2x_led_control,
 };
