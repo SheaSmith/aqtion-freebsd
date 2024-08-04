@@ -333,9 +333,9 @@ int aq2_fw_get_mode(struct aq_hw* sc, enum aq_hw_fw_mpi_state_e* modep, aq_fw_li
 	case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_100M:
 		speed = aq_fw_100M;
 		break;
-	case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_10M:
-		speed = aq_fw_10M;
-		break;
+	// case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_10M:
+	// 	speed = aq_fw_10M;
+	// 	break;
 	case AQ2_FW_INTERFACE_OUT_LINK_STATUS_RATE_INVALID:
 	default:
 		speed = aq_fw_NONE;
@@ -607,10 +607,10 @@ aq2_fw_set_mode(struct aq_hw *sc, enum aq_hw_fw_mpi_state_e mode, aq_fw_link_spe
 	if (speed & aq_fw_100M)
 		v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_100M |
 		    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_100M_HD;
-	if (speed & aq_fw_10M) {
-		v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10M |
-		    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10M_HD;
-	}
+	// if (speed & aq_fw_10M) {
+	// 	v |= AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10M |
+	// 	    AQ2_FW_INTERFACE_IN_LINK_OPTIONS_RATE_10M_HD;
+	// }
 
 	// /* flow control */
 	// v &= ~(AQ2_FW_INTERFACE_IN_LINK_OPTIONS_PAUSE_TX |
