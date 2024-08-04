@@ -806,6 +806,20 @@ static bool aq_is_mc_promisc_required(struct aq_dev *softc)
 #define AQ_FW_GLB_CPU_SEM_REG(i)		(0x03a0 + (i) * 4)
 #define AQ2_ART_SEM_REG				AQ_FW_GLB_CPU_SEM_REG(3)
 
+#define WAIT_FOR(expr, us, n, errp)                             \
+	do {                                                    \
+		unsigned int _n;                                \
+		for (_n = n; (!(expr)) && _n != 0; --_n) {      \
+			msec_delay((us));                            \
+		}                                               \
+		if ((errp != NULL)) {                           \
+			if (_n == 0)                            \
+				*(errp) = ETIMEDOUT;            \
+			else                                    \
+				*(errp) = 0;                    \
+		}                                               \
+	} while (/* CONSTCOND */ 0)
+
 int
 aq2_filter_art_set(struct aq_hw *sc, uint32_t idx,
     uint32_t tag, uint32_t mask, uint32_t action)
