@@ -776,6 +776,16 @@ static bool aq_is_mc_promisc_required(struct aq_dev *softc)
 	return (softc->mcnt >= AQ_HW_MAC_MAX);
 }
 
+
+#define AQ2_ART_ACTION_ACT_SHIFT		8
+#define AQ2_ART_ACTION_RSS			0x0080
+#define AQ2_ART_ACTION_INDEX_SHIFT		2
+#define AQ2_ART_ACTION_ENABLE			0x0001
+#define AQ2_ART_ACTION(act, rss, idx, en)		\
+	(((act) << AQ2_ART_ACTION_ACT_SHIFT) |		\
+	((rss) ? AQ2_ART_ACTION_RSS : 0) |		\
+	((idx) << AQ2_ART_ACTION_INDEX_SHIFT) |		\
+	((en) ? AQ2_ART_ACTION_ENABLE : 0))
 #define AQ2_ART_ACTION_DROP			AQ2_ART_ACTION(0, 0, 0, 1)
 #define AQ2_ART_ACTION_DISABLE			AQ2_ART_ACTION(0, 0, 0, 0)
 #define AQ2_ART_ACTION_ASSIGN_QUEUE(q)		AQ2_ART_ACTION(1, 0, (q), 1)
