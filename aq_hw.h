@@ -196,6 +196,7 @@ struct aq_hw {
     uint32_t sc_features;
     aq2_filter_caps_t sc_filter_caps;	/* AQ2 */
 	uint32_t sc_filter_art_base_index;	/* AQ2 */
+    int			sc_art_filter_base_index;
 };
 
 #define aq_hw_s aq_hw
